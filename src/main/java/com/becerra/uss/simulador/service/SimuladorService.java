@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 public class SimuladorService {
     private ArquitecturaBase simuladorActivo;
 
-    public void iniciarSimulador(String tipo) {
+    public void iniciarSimulador(String tipo, int valorA, int valorB) {
         if ("HARVARD".equalsIgnoreCase(tipo)) {
-            simuladorActivo = new Harvard(16, 16); // MEMORIAS SEPARADAS DE 16 ESPACIOS CADA UNA
+            simuladorActivo = new Harvard(16, 16, valorA, valorB); // MEMORIAS SEPARADAS DE 16 ESPACIOS CADA UNA
         } else {
-            simuladorActivo = new VonNeumann(32); // UNA SOLA MEMORIA DE 32 ESPACIOS
+            simuladorActivo = new VonNeumann(32, valorA, valorB); // UNA SOLA MEMORIA DE 32 ESPACIOS
         }
     }
 

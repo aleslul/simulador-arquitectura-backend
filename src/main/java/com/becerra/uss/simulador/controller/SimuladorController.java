@@ -14,10 +14,13 @@ public class SimuladorController {
     private SimuladorService simuladorService;
 
     @PostMapping("/iniciar")
-    public ResponseEntity<String> iniciar(@RequestParam String tipo) {
+    public ResponseEntity<String> iniciar(
+            @RequestParam String tipo,
+            @RequestParam(defaultValue = "5") int valorA,
+            @RequestParam(defaultValue = "7") int valorB) {
         try {
-            simuladorService.iniciarSimulador(tipo);
-            return ResponseEntity.ok("Simulador " + tipo + " iniciado correctamente");
+            simuladorService.iniciarSimulador(tipo, valorA, valorB);
+            return ResponseEntity.ok("Simulador " + tipo + " iniciado correctamente con los valores " + valorA + " y " + valorB);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al iniciar: " + e.getMessage());
         }

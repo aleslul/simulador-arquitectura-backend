@@ -7,7 +7,7 @@ public class Harvard extends ArquitecturaBase {
     private Memoria memoriaDatos;
     private boolean finalizado = false;
 
-    public Harvard(int tamanoInst, int tamanoDat) {
+    public Harvard(int tamanoInst, int tamanoDat, int valorA, int valorB) {
         super();
 
         this.memoriaInstrucciones = new Memoria(tamanoInst);
@@ -20,8 +20,8 @@ public class Harvard extends ArquitecturaBase {
         this.memoriaInstrucciones.escribir(3, 0000); // HALT
 
         // --- CARGAMOS LOS DATOS EN MEMORIA DE DATOS ---
-        this.memoriaDatos.escribir(0, 5);
-        this.memoriaDatos.escribir(1, 7);
+        this.memoriaDatos.escribir(0, valorA);
+        this.memoriaDatos.escribir(1, valorB);
         // La celda 2 está vacía (0) esperando el resultado
     }
 

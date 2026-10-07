@@ -6,7 +6,7 @@ public class VonNeumann extends ArquitecturaBase {
     private Memoria memoriaPrincipal;
     private boolean finalizado = false;
 
-    public VonNeumann(int tamano) {
+    public VonNeumann(int tamano, int valorA, int valorB) {
         super();
         this.memoriaPrincipal = new Memoria(tamano);
 
@@ -20,8 +20,8 @@ public class VonNeumann extends ArquitecturaBase {
         this.memoriaPrincipal.escribir(3, 0000); // HALT    (Fin)
 
         // Datos iniciales (Espacios 10 y 11)
-        this.memoriaPrincipal.escribir(10, 5); // Valor A = 5
-        this.memoriaPrincipal.escribir(11, 7); // Valor B = 7
+        this.memoriaPrincipal.escribir(10, valorA); // Valor A = 5
+        this.memoriaPrincipal.escribir(11, valorB); // Valor B = 7
         // La celda 12 está vacía (0) esperando el resultado
     }
 
