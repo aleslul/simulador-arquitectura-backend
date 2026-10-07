@@ -13,15 +13,15 @@ public class Harvard extends ArquitecturaBase {
         this.memoriaInstrucciones = new Memoria(tamanoInst);
         this.memoriaDatos = new Memoria(tamanoDat);
 
-        // --- CARGAMOS EL PROGRAMA EN MEMORIA DE INSTRUCCIONES ---
+        // LA MISMA PUTA SIMULACION PEDORRA
         this.memoriaInstrucciones.escribir(0, 1000); // LOAD 0 (Dirección 0 de Mem. Datos)
         this.memoriaInstrucciones.escribir(1, 2001); // ADD 1  (Dirección 1 de Mem. Datos)
         this.memoriaInstrucciones.escribir(2, 3002); // STORE 2(Dirección 2 de Mem. Datos)
         this.memoriaInstrucciones.escribir(3, 0000); // HALT
 
         // --- CARGAMOS LOS DATOS EN MEMORIA DE DATOS ---
-        this.memoriaDatos.escribir(0, 5); // Valor A = 5
-        this.memoriaDatos.escribir(1, 7); // Valor B = 7
+        this.memoriaDatos.escribir(0, 5);
+        this.memoriaDatos.escribir(1, 7);
         // La celda 2 está vacía (0) esperando el resultado
     }
 
