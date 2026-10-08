@@ -1,89 +1,64 @@
 package com.becerra.uss.simulador.model;
 
-import com.becerra.uss.simulador.DTO.EstadoSimulacionDTO;
+/**
+ * Harvard pura: memoria de instrucciones y memoria de datos separadas, cada una con su propio bus.
+ * El fetch y el acceso a datos pueden ocurrir a la vez, pero solo si pertenecen a instrucciones DISTINTAS
+ * (el fetch de la siguiente mientras se ejecuta la actual), es decir, cuando hay solapamiento (modo SEGMENTADO).
+ * Para una misma instrucción el dato siempre se accede después del fetch y la decodificación.
+ * Un STORE nunca puede modificar el código. La palabra de datos puede tener un ancho distinto al de las instrucciones.
+ */
+public final class Harvard extends ArquitecturaBase {
 
-public class Harvard extends ArquitecturaBase {
-    private Memoria memoriaInstrucciones;
-    private Memoria memoriaDatos;
-    private boolean finalizado = false;
+    private final Memoria memoriaInstrucciones;
+    private final Memoria memoriaDatos;
+    private final Recurso busInstrucciones = new Recurso("BUS_INSTRUCCIONES");
+    private final Recurso busDatos = new Recurso("BUS_DATOS");
 
-    public Harvard(int tamanoInst, int tamanoDat, int valorA, int valorB) {
-        super();
-
-        this.memoriaInstrucciones = new Memoria(tamanoInst);
-        this.memoriaDatos = new Memoria(tamanoDat);
-
-        // LA MISMA PUTA SIMULACION PEDORRA
-        this.memoriaInstrucciones.escribir(0, 1000); // LOAD 0 (Dirección 0 de Mem. Datos)
-        this.memoriaInstrucciones.escribir(1, 2001); // ADD 1  (Dirección 1 de Mem. Datos)
-        this.memoriaInstrucciones.escribir(2, 3002); // STORE 2(Dirección 2 de Mem. Datos)
-        this.memoriaInstrucciones.escribir(3, 0000); // HALT
-
-        // --- CARGAMOS LOS DATOS EN MEMORIA DE DATOS ---
-        this.memoriaDatos.escribir(0, valorA);
-        this.memoriaDatos.escribir(1, valorB);
-        // La celda 2 está vacía (0) esperando el resultado
+    public Harvard(ConfiguracionSimulador config, ProgramaEnsamblado programa) {
+        super(config);
+        this.memoriaInstrucciones = new Memoria("memoria de instrucciones", config.tamMemoriaInstrucciones(),
+                Instruccion.BITS_PALABRA);
+        this.memoriaDatos = new Memoria("memoria de datos", config.tamMemoriaDatos(), config.anchoDatos());
+        cargarEnHarvard(programa, memoriaInstrucciones, memoriaDatos);
     }
 
     @Override
-    public EstadoSimulacionDTO ejecutarPaso() {
-        EstadoSimulacionDTO dto = new EstadoSimulacionDTO();
-        dto.arquitectura = "Harvard";
-
-        if (finalizado) return empaquetarEstado(dto, "Programa finalizado.");
-
-        // CONSTANTES DE REALISMO
-        final int LATENCIA_MEMORIA = 3;
-        final int TIEMPO_PROCESAMIENTO_CPU = 1;
-
-        // Fetch de la instrucción
-        int instruccion = memoriaInstrucciones.leer(cpu.getPc());
-        int opcode = instruccion / 100;
-        int direccion = instruccion % 100;
-
-        String log = "";
-
-        switch (opcode) {
-            case 0:
-                cpu.setIr("HALT");
-                finalizado = true;
-                log = "Fin de ejecución.";
-                break;
-            case 10: // LOAD
-                cpu.setIr("LOAD " + direccion);
-                cpu.setAcumulador(memoriaDatos.leer(direccion));
-                // Solapamiento: Fetch y Data Read ocurren en paralelo en esos 3 ciclos
-                this.ciclosReloj += LATENCIA_MEMORIA;
-                log = "LOAD: Fetch y Data Read paralelos. Total: 3 ciclos en este paso.";
-                break;
-            case 20: // ADD
-                cpu.setIr("ADD " + direccion);
-                int valorSumar = memoriaDatos.leer(direccion);
-                cpu.setAcumulador(cpu.getAcumulador() + valorSumar);
-                // Solapamiento (3) + Tiempo de ALU (1)
-                this.ciclosReloj += (LATENCIA_MEMORIA + TIEMPO_PROCESAMIENTO_CPU);
-                log = "ADD: Paralelismo (3) + Suma ALU (1). Total: 4 ciclos.";
-                break;
-            case 30: // STORE
-                cpu.setIr("STORE " + direccion);
-                memoriaDatos.escribir(direccion, cpu.getAcumulador());
-                this.ciclosReloj += LATENCIA_MEMORIA;
-                log = "STORE: Fetch y Data Write paralelos. Total: 3 ciclos.";
-                break;
-        }
-
-        if (!finalizado) cpu.incrementarPc();
-        return empaquetarEstado(dto, log);
+    protected int leerInstruccion(int direccion) {
+        return memoriaInstrucciones.leer(direccion);
     }
 
-    private EstadoSimulacionDTO empaquetarEstado(EstadoSimulacionDTO dto, String log) {
-        dto.pc = cpu.getPc();
-        dto.ir = cpu.getIr();
-        dto.acumulador = cpu.getAcumulador();
-        dto.ciclosReloj = this.ciclosReloj;
-        dto.memoriaInstrucciones = memoriaInstrucciones.getEstadoCeldas();
-        dto.memoriaDatos = memoriaDatos.getEstadoCeldas();
-        dto.logOperacion = log;
-        return dto;
+    @Override
+    protected int leerDato(int direccion) {
+        return memoriaDatos.leer(direccion);
+    }
+
+    @Override
+    protected void escribirDato(int direccion, int valor) {
+        memoriaDatos.escribir(direccion, valor);
+    }
+
+    @Override
+    protected Acceso accesoInstruccion(int direccion, int solicitud) {
+        return reservar(busInstrucciones, solicitud, config.latenciaMemoria(), null);
+    }
+
+    @Override
+    protected Acceso accesoDato(int direccion, boolean escritura, int solicitud) {
+        return reservar(busDatos, solicitud, config.latenciaMemoria(), null);
+    }
+
+    @Override
+    protected int[] memoriaPrincipal() {
+        return null;
+    }
+
+    @Override
+    protected int[] memoriaInstrucciones() {
+        return memoriaInstrucciones.getEstadoCeldas();
+    }
+
+    @Override
+    protected int[] memoriaDatos() {
+        return memoriaDatos.getEstadoCeldas();
     }
 }

@@ -1,17 +1,16 @@
 package com.becerra.uss.simulador.model;
 
+/** Registros visibles de la CPU. */
 public class CPU {
-    private int pc; // Contador del programa
-    private String ir; // Registro de instrucciones
+    private int pc;               // Contador de programa
+    private String ir = "NOP";    // Registro de instrucción (decodificada)
     private int acumulador;
-
-    public CPU() {
-        this.pc = 0;
-        this.ir = "NOP";
-        this.acumulador = 0;
-    }
+    private int mar;              // Registro de dirección de memoria (último acceso)
+    private int mdr;              // Registro de datos de memoria (último acceso)
+    private final Flags flags = new Flags();
 
     public int getPc() { return pc; }
+    public void setPc(int pc) { this.pc = pc; }
     public void incrementarPc() { this.pc++; }
 
     public String getIr() { return ir; }
@@ -20,4 +19,11 @@ public class CPU {
     public int getAcumulador() { return acumulador; }
     public void setAcumulador(int acumulador) { this.acumulador = acumulador; }
 
+    public int getMar() { return mar; }
+    public void setMar(int mar) { this.mar = mar; }
+
+    public int getMdr() { return mdr; }
+    public void setMdr(int mdr) { this.mdr = mdr; }
+
+    public Flags getFlags() { return flags; }
 }
