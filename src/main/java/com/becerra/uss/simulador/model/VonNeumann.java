@@ -30,20 +30,23 @@ public class VonNeumann extends ArquitecturaBase {
         EstadoSimulacionDTO dto = new EstadoSimulacionDTO();
         dto.arquitectura = "Von Neumann";
 
-        if (finalizado) {
-            return empaquetarEstado(dto, "Programa finalizado. No hay más ciclos.");
-        }
+        if (finalizado) return empaquetarEstado(dto, "Programa finalizado.");
 
-        // 1. Fetch de la instrucción
+        // CONSTANTES DE REALISMO: En realidad la memoria RAM es más lenta que el procesador, para representar esto se agregaron estas constantes que determinan cuantos ciclos para acceder a la RAM y a la ALU
+        final int LATENCIA_BUS_MEMORIA = 3; // Ir a RAM tarda 3 ciclos
+        final int TIEMPO_PROCESAMIENTO_CPU = 1; // La ALU interna es rápida tardadno 1 ciclo
+
+        // 1. Fetch: La CPU tiene que ir a la Memoria Principal por el bus único
         int instruccion = memoriaPrincipal.leer(cpu.getPc());
-        int opcode = instruccion / 100;     // Ej: 1010 / 100 = 10
-        int direccion = instruccion % 100;  // Ej: 1010 % 100 = 10
+        this.ciclosReloj += LATENCIA_BUS_MEMORIA;
 
+        int opcode = instruccion / 100;
+        int direccion = instruccion % 100;
         String log = "";
 
-        // 2. Decode & Execute
+        // 2. Decode y Execute
         switch (opcode) {
-            case 0: // HALT
+            case 0:
                 cpu.setIr("HALT");
                 finalizado = true;
                 log = "Fin de ejecución.";
@@ -51,21 +54,22 @@ public class VonNeumann extends ArquitecturaBase {
             case 10: // LOAD
                 cpu.setIr("LOAD " + direccion);
                 cpu.setAcumulador(memoriaPrincipal.leer(direccion));
-                this.ciclosReloj += 2; // 1 ciclo para instrucción + 1 para dato
-                log = "Carga " + cpu.getAcumulador() + " al Acumulador. (Cuello de botella: 2 ciclos)";
+                this.ciclosReloj += LATENCIA_BUS_MEMORIA; // Otro viaje lento por el dato
+                log = "LOAD: Fetch (3) + Data Read (3). Total: 6 ciclos en este paso.";
                 break;
             case 20: // ADD
                 cpu.setIr("ADD " + direccion);
                 int valorSumar = memoriaPrincipal.leer(direccion);
                 cpu.setAcumulador(cpu.getAcumulador() + valorSumar);
-                this.ciclosReloj += 2;
-                log = "Suma " + valorSumar + " al Acumulador. (Cuello de botella: 2 ciclos)";
+                // Viaje lento por el dato + tiempo rápido de suma interna
+                this.ciclosReloj += (LATENCIA_BUS_MEMORIA + TIEMPO_PROCESAMIENTO_CPU);
+                log = "ADD: Fetch (3) + Data Read (3) + Suma ALU (1). Total: 7 ciclos.";
                 break;
             case 30: // STORE
                 cpu.setIr("STORE " + direccion);
                 memoriaPrincipal.escribir(direccion, cpu.getAcumulador());
-                this.ciclosReloj += 2;
-                log = "Guarda " + cpu.getAcumulador() + " en memoria principal. (Cuello de botella: 2 ciclos)";
+                this.ciclosReloj += LATENCIA_BUS_MEMORIA;
+                log = "STORE: Fetch (3) + Data Write (3). Total: 6 ciclos.";
                 break;
         }
 

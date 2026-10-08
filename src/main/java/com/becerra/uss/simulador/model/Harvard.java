@@ -30,18 +30,21 @@ public class Harvard extends ArquitecturaBase {
         EstadoSimulacionDTO dto = new EstadoSimulacionDTO();
         dto.arquitectura = "Harvard";
 
-        if (finalizado) {
-            return empaquetarEstado(dto, "Programa finalizado. No hay más ciclos.");
-        }
+        if (finalizado) return empaquetarEstado(dto, "Programa finalizado.");
 
+        // CONSTANTES DE REALISMO
+        final int LATENCIA_MEMORIA = 3;
+        final int TIEMPO_PROCESAMIENTO_CPU = 1;
+
+        // Fetch de la instrucción
         int instruccion = memoriaInstrucciones.leer(cpu.getPc());
         int opcode = instruccion / 100;
-        int direccion = instruccion % 100; // Esta dirección ahora apunta a memoriaDatos
+        int direccion = instruccion % 100;
 
         String log = "";
 
         switch (opcode) {
-            case 0: // HALT
+            case 0:
                 cpu.setIr("HALT");
                 finalizado = true;
                 log = "Fin de ejecución.";
@@ -49,21 +52,23 @@ public class Harvard extends ArquitecturaBase {
             case 10: // LOAD
                 cpu.setIr("LOAD " + direccion);
                 cpu.setAcumulador(memoriaDatos.leer(direccion));
-                this.ciclosReloj += 1; // Acceso en paralelo
-                log = "Carga " + cpu.getAcumulador() + " al Acumulador. (Bus separado: 1 ciclo)";
+                // Solapamiento: Fetch y Data Read ocurren en paralelo en esos 3 ciclos
+                this.ciclosReloj += LATENCIA_MEMORIA;
+                log = "LOAD: Fetch y Data Read paralelos. Total: 3 ciclos en este paso.";
                 break;
             case 20: // ADD
                 cpu.setIr("ADD " + direccion);
                 int valorSumar = memoriaDatos.leer(direccion);
                 cpu.setAcumulador(cpu.getAcumulador() + valorSumar);
-                this.ciclosReloj += 1;
-                log = "Suma " + valorSumar + " al Acumulador. (Bus separado: 1 ciclo)";
+                // Solapamiento (3) + Tiempo de ALU (1)
+                this.ciclosReloj += (LATENCIA_MEMORIA + TIEMPO_PROCESAMIENTO_CPU);
+                log = "ADD: Paralelismo (3) + Suma ALU (1). Total: 4 ciclos.";
                 break;
             case 30: // STORE
                 cpu.setIr("STORE " + direccion);
                 memoriaDatos.escribir(direccion, cpu.getAcumulador());
-                this.ciclosReloj += 1;
-                log = "Guarda " + cpu.getAcumulador() + " en memoria de datos. (Bus separado: 1 ciclo)";
+                this.ciclosReloj += LATENCIA_MEMORIA;
+                log = "STORE: Fetch y Data Write paralelos. Total: 3 ciclos.";
                 break;
         }
 
