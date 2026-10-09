@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
-/** API REST del simulador. CORS se configura en {@code WebConfig}. */
+/** API REST del simulador. CORS se configura en {WebConfig}. */
 @RestController
 @RequestMapping("/api/simulador")
 public class SimuladorController {
@@ -38,7 +38,7 @@ public class SimuladorController {
         return simuladorService.iniciar(solicitud, true);
     }
 
-    /** Crea una simulación con programa propio y parámetros de hardware (cuerpo JSON). */
+    /** Crea una simulación con programa propio y parámetros de hardware (cuerpo JSON) */
     @PostMapping("/sesiones")
     public RespuestaInicioDTO crearSesion(@RequestBody SolicitudSimulacionDTO solicitud) {
         return simuladorService.iniciar(solicitud, false);
@@ -49,20 +49,20 @@ public class SimuladorController {
         return simuladorService.ejecutarPaso(sesionId);
     }
 
-    /** @deprecated Modifica el estado, por lo que debe ser POST. Se mantiene solo por compatibilidad. */
+    /** @deprecated Modifica el estado, por lo que debe ser POST. Se mantiene solo por compatibilidad */
     @Deprecated
     @GetMapping("/paso")
     public EstadoSimulacionDTO pasoGet(@RequestParam(value = "sesionId", required = false) String sesionId) {
         return simuladorService.ejecutarPaso(sesionId);
     }
 
-    /** Estado actual sin avanzar la simulación. */
+    /** Estado actual sin avanzar la simulación */
     @GetMapping("/estado")
     public EstadoSimulacionDTO estado(@RequestParam(value = "sesionId", required = false) String sesionId) {
         return simuladorService.estado(sesionId);
     }
 
-    /** Ejecuta hasta HALT, un fallo o el límite de pasos. */
+    /** Ejecuta hasta HALT, un fallo o el límite de pasos */
     @PostMapping("/ejecutar-todo")
     public EstadoSimulacionDTO ejecutarTodo(
             @RequestParam(value = "sesionId", required = false) String sesionId,
@@ -70,13 +70,13 @@ public class SimuladorController {
         return simuladorService.ejecutarTodo(sesionId, maxPasos);
     }
 
-    /** Vuelve al estado inicial (mismo programa y configuración). */
+    /** Vuelve al estado inicial (mismo programa y configuración) */
     @PostMapping("/reset")
     public EstadoSimulacionDTO reset(@RequestParam(value = "sesionId", required = false) String sesionId) {
         return simuladorService.reiniciar(sesionId);
     }
 
-    /** Compara las 3 arquitecturas en los 2 modos con el programa por defecto. */
+    /** Compara las 3 arquitecturas en los 2 modos con el programa por defecto */
     @GetMapping("/comparar")
     public List<ResultadoComparacionDTO> compararPorDefecto(
             @RequestParam(value = "valorA", defaultValue = "5") int valorA,
@@ -85,13 +85,13 @@ public class SimuladorController {
                 null, null, valorA, valorB, null, null, null, null, null, null));
     }
 
-    /** Compara con un programa propio y/o parámetros de hardware (cuerpo JSON). */
+    /** Compara con un programa propio y/o parámetros de hardware (cuerpo JSON) */
     @PostMapping("/comparar")
     public List<ResultadoComparacionDTO> comparar(@RequestBody SolicitudSimulacionDTO solicitud) {
         return simuladorService.comparar(solicitud);
     }
 
-    /** Programas de ejemplo (suma, multiplicación con bucle, código automodificable). */
+    /** Programas de ejemplo (suma, multiplicación con bucle, código automodificable) */
     @GetMapping("/ejemplos")
     public Map<String, String> ejemplos(
             @RequestParam("tipo") String tipo,

@@ -2,12 +2,10 @@ package com.becerra.uss.simulador.model;
 
 /**
  * Unidad aritmético-lógica con ancho de palabra configurable (1..32 bits), complemento a dos y flags.
- * <ul>
- *   <li>Z: resultado = 0</li>
- *   <li>N: resultado negativo</li>
- *   <li>C: acarreo en la suma, o préstamo (borrow) en la resta</li>
- *   <li>V: desbordamiento con signo</li>
- * </ul>
+ *   Z: resultado = 0
+ *   N: resultado negativo
+ *   C: acarreo en la suma, o préstamo (borrow) en la resta
+ *   V: desbordamiento con signo
  */
 public final class Alu {
 

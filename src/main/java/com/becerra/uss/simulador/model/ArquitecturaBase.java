@@ -13,12 +13,11 @@ import java.util.Map;
 
 /**
  * Lógica común de todas las arquitecturas (Template Method).
- * <p>
  * La ISA, el ciclo fetch → decode → execute, las banderas, los fallos y la contabilidad de ciclos viven aquí.
  * Cada arquitectura solo define DÓNDE están los datos y CUÁNTO cuesta acceder a ellos:
  * {@link #leerInstruccion}, {@link #leerDato}, {@link #escribirDato} (comportamiento funcional) y
  * {@link #accesoInstruccion}, {@link #accesoDato} (temporización y conflictos de recursos).
- * <p>
+ *
  * Modelo de tiempos: cada paso ejecuta UNA instrucción. Se calcula en qué ciclo empieza y termina cada fase
  * respetando (1) la unidad de ejecución, que atiende una instrucción a la vez, y (2) los recursos compartidos
  * (un único bus en Von Neumann). En modo SEGMENTADO el fetch de la instrucción siguiente puede empezar mientras
@@ -46,9 +45,9 @@ public abstract class ArquitecturaBase {
         this.config = config;
     }
 
-    // ------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------
     // Puntos de extensión: lo único que cambia entre arquitecturas
-    // ------------------------------------------------------------------------------------------
+    // -------------------------------------------------------------
 
     /** Lee la palabra de instrucción de la dirección dada (comportamiento funcional). */
     protected abstract int leerInstruccion(int direccion);
@@ -72,9 +71,9 @@ public abstract class ArquitecturaBase {
         return null;
     }
 
-    // ------------------------------------------------------------------------------------------
+    // --------------------
     // Ciclo de instrucción
-    // ------------------------------------------------------------------------------------------
+    // --------------------
 
     public final EstadoSimulacionDTO ejecutarPaso() {
         if (finalizado) {
@@ -220,9 +219,9 @@ public abstract class ArquitecturaBase {
         return construirEstado(log, List.of(), 0);
     }
 
-    // ------------------------------------------------------------------------------------------
+    // ------------------------------------------------
     // Consultas (para el servicio y las comparaciones)
-    // ------------------------------------------------------------------------------------------
+    // ------------------------------------------------
 
     public final boolean isFinalizado() { return finalizado; }
     public final String getError() { return error; }
@@ -236,9 +235,9 @@ public abstract class ArquitecturaBase {
         return instruccionesEjecutadas == 0 ? 0.0 : Math.round(100.0 * ciclosReloj / instruccionesEjecutadas) / 100.0;
     }
 
-    // ------------------------------------------------------------------------------------------
+    // -------------------------------------
     // Carga de programas (validación común)
-    // ------------------------------------------------------------------------------------------
+    // -------------------------------------
 
     /** Von Neumann y Harvard modificada: código y datos comparten la misma memoria. */
     protected final void cargarEnMemoriaUnificada(ProgramaEnsamblado programa, Memoria memoria) {
@@ -299,9 +298,9 @@ public abstract class ArquitecturaBase {
         }
     }
 
-    // ------------------------------------------------------------------------------------------
+    // -----------------------------
     // Utilidades para las subclases
-    // ------------------------------------------------------------------------------------------
+    // -----------------------------
 
     /** Reserva {@code recurso} por {@code duracion} ciclos a partir de {@code solicitud}. */
     protected static Acceso reservar(Recurso recurso, int solicitud, int duracion, Boolean acierto) {
@@ -311,9 +310,9 @@ public abstract class ArquitecturaBase {
         return new Acceso(inicio, fin, recurso.getNombre(), acierto);
     }
 
-    // ------------------------------------------------------------------------------------------
+    // --------
     // Internos
-    // ------------------------------------------------------------------------------------------
+    // --------
 
     private int capturarInstruccion(int pc) {
         try {

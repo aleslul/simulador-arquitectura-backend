@@ -52,9 +52,9 @@ public class SimuladorService {
         this.inactividadMaximaMs = inactividadMinutos * 60_000L;
     }
 
-    // ------------------------------------------------------------------------------------------
+    // ------
     // Sesión
-    // ------------------------------------------------------------------------------------------
+    // ------
 
     /** Estado mutable de una simulación; todos sus métodos están sincronizados. */
     private static final class Sesion {
@@ -105,9 +105,9 @@ public class SimuladorService {
         }
     }
 
-    // ------------------------------------------------------------------------------------------
+    // -----------
     // Operaciones
-    // ------------------------------------------------------------------------------------------
+    // -----------
 
     /** @param comoPorDefecto si es true, también se registra como la sesión "default" (compatibilidad). */
     public RespuestaInicioDTO iniciar(SolicitudSimulacionDTO solicitud, boolean comoPorDefecto) {
@@ -217,9 +217,9 @@ public class SimuladorService {
                 valorB != null ? valorB : VALOR_B_POR_DEFECTO);
     }
 
-    // ------------------------------------------------------------------------------------------
+    // --------
     // Internos
-    // ------------------------------------------------------------------------------------------
+    // --------
 
     private Sesion obtener(String sesionId) {
         String id = esVacio(sesionId) ? SESION_POR_DEFECTO : sesionId;

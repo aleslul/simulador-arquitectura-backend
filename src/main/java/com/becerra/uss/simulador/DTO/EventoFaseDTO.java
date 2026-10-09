@@ -2,7 +2,7 @@ package com.becerra.uss.simulador.DTO;
 
 /**
  * Una fase dentro del paso (para dibujar un diagrama de tiempos). En modo SEGMENTADO los eventos de un paso pueden
- * solaparse en el tiempo con los del paso anterior (el fetch de la instrucción i+1 ocurre mientras se ejecuta la i).
+ * solaparse en el tiempo con los del paso anterior (el fetch de la instrucción i+1 ocurre mientras se ejecuta la i)
  *
  * @param fase        FETCH, DECODE, MEM_LECTURA, MEM_ESCRITURA, ALU o SALTO
  * @param recurso     recurso utilizado (BUS_UNICO, BUS_INSTRUCCIONES, BUS_DATOS, L1I, L1D, UNIDAD_CONTROL, ...)

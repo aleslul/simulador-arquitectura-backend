@@ -1,7 +1,7 @@
 package com.becerra.uss.simulador.DTO;
 
 /**
- * Solicitud para crear una simulación. Todo es opcional salvo {@code tipo} (excepto en /comparar, que lo ignora).
+ * Solicitud para crear una simulación. Todo es opcional salvo {@code tipo} (excepto en /comparar, que lo ignora)
  *
  * @param tipo                  VON_NEUMANN, HARVARD o HARVARD_MODIFICADA
  * @param modo                  SECUENCIAL o SEGMENTADO (por defecto SEGMENTADO)

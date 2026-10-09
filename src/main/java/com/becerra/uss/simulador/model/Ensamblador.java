@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 /**
  * Ensamblador de dos pasadas.
- * <pre>
+ *
  * ; comentario (también // o #)
  * INICIO: LOAD 10        ; etiqueta + instrucción
  *         ADD  11
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *         STORE 12
  * FIN:    HALT
  * .DATO 10 5             ; directiva: MEM_DATOS[10] = 5 (decimal, 0x.. o negativo)
- * </pre>
+ *
  * Las instrucciones se cargan desde la dirección 0 en el orden en que aparecen.
  */
 public final class Ensamblador {

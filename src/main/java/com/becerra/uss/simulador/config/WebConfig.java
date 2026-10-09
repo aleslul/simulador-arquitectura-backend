@@ -6,8 +6,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CORS configurable. En desarrollo el valor por defecto "*" permite cualquier origen; en producción defina por ejemplo
- * {@code simulador.cors.origenes=https://mi-frontend.com,http://localhost:5173}.
+ * CORS configurable. En desarrollo el valor por defecto "*" permite cualquier origen
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

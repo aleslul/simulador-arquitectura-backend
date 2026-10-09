@@ -5,13 +5,11 @@ import java.util.Locale;
 
 /**
  * Cómo se solapan las instrucciones en el tiempo.
- * <ul>
- *   <li>SECUENCIAL: una instrucción termina por completo antes de empezar el fetch de la siguiente.
- *       En este modo Harvard NO es más rápida que Von Neumann (el dato se necesita después del fetch).</li>
- *   <li>SEGMENTADO: 2 etapas (Fetch || Decode/Execute). El fetch de la instrucción i+1 se solapa con la
+ *   SECUENCIAL: una instrucción termina por completo antes de empezar el fetch de la siguiente.
+ *       En este modo Harvard NO es más rápida que Von Neumann (el dato se necesita después del fetch).
+ *   SEGMENTADO: 2 etapas (Fetch || Decode/Execute). El fetch de la instrucción i+1 se solapa con la
  *       ejecución de la i. Aquí aparece la ventaja de Harvard: con un único bus (Von Neumann) el fetch
- *       debe esperar a que el bus quede libre de accesos a datos (riesgo estructural).</li>
- * </ul>
+ *       debe esperar a que el bus quede libre de accesos a datos (riesgo estructural).
  */
 public enum ModoEjecucion {
     SECUENCIAL,
