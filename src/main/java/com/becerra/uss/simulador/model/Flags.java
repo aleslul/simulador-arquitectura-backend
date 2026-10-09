@@ -1,6 +1,6 @@
 package com.becerra.uss.simulador.model;
 
-/** Registro de banderas de la CPU. */
+/** Registro de banderas de la CPU */
 public class Flags {
     private boolean z;
     private boolean n;
@@ -14,7 +14,7 @@ public class Flags {
         this.v = r.v();
     }
 
-    /** LOAD solo actualiza Z y N (no toca C ni V). */
+    /** LOAD solo actualiza Z y N (no toca C ni V) */
     public void actualizarZN(int valor) {
         this.z = valor == 0;
         this.n = valor < 0;

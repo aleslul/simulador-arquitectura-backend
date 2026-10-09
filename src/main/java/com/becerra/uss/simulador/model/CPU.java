@@ -1,6 +1,6 @@
 package com.becerra.uss.simulador.model;
 
-/** Registros visibles de la CPU. */
+/** Registros visibles de la CPU */
 public class CPU {
     private int pc;               // Contador de programa
     private String ir = "NOP";    // Registro de instrucción (decodificada)

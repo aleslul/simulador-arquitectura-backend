@@ -1,10 +1,7 @@
 package com.becerra.uss.simulador.model;
 
 /**
- * Von Neumann: UNA memoria para instrucciones y datos y UN solo bus.
- * Cualquier acceso (fetch, lectura o escritura de datos) usa el mismo bus, así que no pueden solaparse:
- * es el "cuello de botella de Von Neumann". Como el código está en la misma memoria que los datos, un STORE
- * puede sobrescribir instrucciones (código automodificable).
+ * EL QUE TIENE UN SOLO BUS
  */
 public final class VonNeumann extends ArquitecturaBase {
 

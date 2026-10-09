@@ -1,12 +1,12 @@
 package com.becerra.uss.simulador.model;
 
 /**
- * Resultado de temporizar un acceso a memoria.
+ * RESULTADO DE TEMPORIZADOR UN ACCESO A MEMORIA
  *
- * @param inicio  ciclo en que realmente empieza (puede ser posterior a la solicitud si el recurso estaba ocupado)
- * @param fin     ciclo en que termina
- * @param recurso recurso utilizado (BUS_UNICO, BUS_INSTRUCCIONES, BUS_DATOS, L1I, L1D, ...)
- * @param acierto true/false si pasó por una caché; null si no aplica
+ * inicio: ciclo en que realmente empieza
+ * fin: ciclo en que termina lol
+ * recurso: RECURSO USADO COMO LOS BUSES, LA RAM O LA CACHE EN EL MODIFCADO
+ * acierto: true/false si pasó por una cache pero no lo usamos pq harvar modificado zzz
  */
 public record Acceso(int inicio, int fin, String recurso, Boolean acierto) {
 }

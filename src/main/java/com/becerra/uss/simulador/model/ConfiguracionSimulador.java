@@ -3,7 +3,7 @@ package com.becerra.uss.simulador.model;
 import com.becerra.uss.simulador.exception.SolicitudInvalidaException;
 
 /**
- * Parámetros de hardware de una simulación. Todos los tiempos están en ciclos de reloj.
+ * ESTOS SON LOS PARAMETROS DEL HARDWARE SMULADO, TODOS LOS TIEMPS ESTAN EN CICLOS DE RELOJ
  *
  * @param latenciaMemoria          ciclos de un acceso a la memoria principal/bus (RAM)
  * @param tiempoDecodificacion     ciclos de decodificación en la unidad de control
@@ -51,14 +51,14 @@ public record ConfiguracionSimulador(
         return new ConfiguracionSimulador(tipo, modo, 3, 1, 1, 1, 16, 16, 16, 32, 8, 1);
     }
 
-    /** Misma configuración de hardware pero con otra arquitectura/modo (para comparar). */
+    /** LO MISMO PERO PARA HACER COMPARACIONES PERO NO LO PONDREMOS AL FRONTEND PQ CHATGPT NO QUIERE Y YO TAMPOCO QUIERO TOCAR JS */
     public ConfiguracionSimulador con(TipoArquitectura nuevoTipo, ModoEjecucion nuevoModo) {
         return new ConfiguracionSimulador(nuevoTipo, nuevoModo, latenciaMemoria, tiempoDecodificacion, tiempoAlu,
                 tiempoSalto, anchoDatos, tamMemoriaInstrucciones, tamMemoriaDatos, tamMemoriaUnificada,
                 lineasCache, latenciaCache);
     }
 
-    /** Ancho (bits) con el que opera la ALU y el acumulador. */
+    /** EL ANCHO DE BITS EN LOS QUE OPERA EL ALU Y EL ACUMULADOR */
     public int anchoAlu() {
         return tipo == TipoArquitectura.HARVARD ? anchoDatos : Instruccion.BITS_PALABRA;
     }

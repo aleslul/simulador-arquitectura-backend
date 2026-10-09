@@ -3,7 +3,7 @@ package com.becerra.uss.simulador.model;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Programas de ejemplo en ensamblador. Las direcciones de datos dependen de la arquitectura. */
+/** PROFGRAMAS POR DEFECTO YA ENSAMBLADOS PARA Q NO SUFRA */
 public final class ProgramaPorDefecto {
 
     private ProgramaPorDefecto() {
@@ -14,7 +14,7 @@ public final class ProgramaPorDefecto {
         return tipo == TipoArquitectura.HARVARD ? 0 : 10;
     }
 
-    /** C = A + B (el programa original del simulador). */
+    /** PROGRAMA ORIGINAL (C = A + B) */
     public static String suma(TipoArquitectura tipo, int a, int b) {
         int d = baseDatos(tipo);
         return String.join("\n",
@@ -28,7 +28,7 @@ public final class ProgramaPorDefecto {
                 "");
     }
 
-    /** RES = A * B por sumas repetidas: ejercita saltos, flags y reutilización (aprovecha las cachés). */
+    /** MULTIPLICACION POR SUMAS REPETIDAS QUE NO SE USA PORQUE ES DE HARVARD MODIFICADO Y HRARVARD MODIFICADO NO FUNCIONA PORQ ME DA PEREZA ARREGLARLO */
     public static String multiplicacion(TipoArquitectura tipo, int a, int b) {
         int d = baseDatos(tipo);
         int contador = d, factor = d + 1, uno = d + 2, resultado = d + 3;
@@ -50,9 +50,8 @@ public final class ProgramaPorDefecto {
     }
 
     /**
-     * Intenta sobrescribir la instrucción de la dirección 3 con HALT mediante STORE.
-     * En Von Neumann (memoria unificada) funciona: el programa termina antes. En Harvard, STORE escribe en la
-     * memoria de DATOS y el código queda intacto, así que el segundo ADD sí se ejecuta.
+     * ESTE ES UN EJEMPLO DE LA SOBREESCRITURA QUE SE PUEDE HACER EN NEUMANN PORQ LAS INSTRUCCIONES Y LOS DATOS VIVEN
+     * EN LA MISMA MEMORIA
      */
     public static String autoModificable() {
         return String.join("\n",

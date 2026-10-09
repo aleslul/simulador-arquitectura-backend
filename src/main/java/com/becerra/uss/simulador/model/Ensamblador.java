@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Ensamblador de dos pasadas.
+ * Ensamblador de dos pasadas (no se como funcionó pero funcionó)
  *
  * ; comentario (también // o #)
  * INICIO: LOAD 10        ; etiqueta + instrucción

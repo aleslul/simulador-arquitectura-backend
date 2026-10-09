@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/** Traduce las excepciones de dominio a respuestas HTTP con un cuerpo JSON uniformE */
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

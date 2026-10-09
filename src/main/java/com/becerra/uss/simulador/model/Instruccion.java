@@ -4,7 +4,7 @@ import com.becerra.uss.simulador.exception.FalloEjecucionException;
 
 /**
  * Instrucción de 16 bits: [ opcode (4 bits) | operando (12 bits) ].
- * Ejemplo: LOAD 10 = 0001 0000 0000 1010 = 0x100A = 4106.
+ * Ejemplo: LOAD 10 = 0001 0000 0000 1010 = 0x100A = 4106 o algo asi la verdad tengo sueño
  */
 public record Instruccion(Opcode opcode, int operando) {
 
@@ -23,7 +23,7 @@ public record Instruccion(Opcode opcode, int operando) {
         return (opcode.getCodigo() << BITS_OPERANDO) | operando;
     }
 
-    /** Decodifica una palabra; lanza FalloEjecucionException(OPCODE_INVALIDO) si el opcode no existe. */
+    /** Decodifica una palabra lanza FalloEjecucionException(OPCODE_INVALIDO) si el opcode no existe */
     public static Instruccion decodificar(int palabra) {
         int w = palabra & MASCARA_PALABRA;
         int codigo = w >>> BITS_OPERANDO;
@@ -35,7 +35,7 @@ public record Instruccion(Opcode opcode, int operando) {
         return new Instruccion(op, w & MAX_OPERANDO);
     }
 
-    /** Texto legible de una palabra de instrucción, o null si no es una instrucción válida. */
+    /** Texto legible de una palabra de instrucción, o null si no es una instrucción válida */
     public static String desensamblar(int palabra) {
         try {
             return decodificar(palabra).toString();

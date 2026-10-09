@@ -4,9 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Caché totalmente asociativa con reemplazo LRU y líneas de una palabra.
- * Solo guarda las direcciones presentes (los valores se leen de la memoria; con política
- * write-through la caché nunca está "sucia", así que no hace falta duplicar datos).
+    TODO: ESTO ES DEL HARVARD MODIFICADO Y TPCO FUNCIONA ZZZ
  */
 public class Cache {
     private final String nombre;

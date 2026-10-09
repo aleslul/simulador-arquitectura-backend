@@ -3,14 +3,7 @@ package com.becerra.uss.simulador.model;
 import com.becerra.uss.simulador.DTO.EstadisticasCacheDTO;
 
 /**
- * Harvard modificada: así son las CPU actuales. Hacia la CPU hay dos cachés L1 separadas (instrucciones y datos),
- * pero por detrás hay UNA sola RAM unificada.
- *
- *   Acierto en L1: cuesta {@code latenciaCache} ciclos y solo ocupa el puerto de esa caché.
- *   Fallo: cuesta {@code latenciaMemoria + latenciaCache} ciclos y ocupa el puerto de la caché y la RAM
- *       (si L1I y L1D fallan a la vez, compiten por la RAM como en Von Neumann).
- *   Escritura: write-through con write-allocate (cuesta {@code latenciaMemoria}) e invalida la línea en L1I,
- *       así que el código automodificable sigue funcionando.
+ * TODO: NO ESTA FUNCIONANDO QUE PEREZA QUITARLO
  */
 public final class HarvardModificada extends ArquitecturaBase {
 

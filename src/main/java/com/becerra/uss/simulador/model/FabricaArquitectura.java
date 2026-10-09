@@ -1,6 +1,8 @@
 package com.becerra.uss.simulador.model;
 
-/** Crea la arquitectura que corresponde a la configuración. */
+/** FABRICA LA ARQUITECTURA XD
+ * USA FACTORY METHOD PARA ENSAMBLAR LA ARQUITECTURA CON SUS NECESIDADES
+ * */
 public final class FabricaArquitectura {
 
     private FabricaArquitectura() {

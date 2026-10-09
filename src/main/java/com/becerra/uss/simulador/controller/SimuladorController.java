@@ -26,7 +26,7 @@ public class SimuladorController {
         this.simuladorService = simuladorService;
     }
 
-    /** Inicia una simulación con el programa por defecto (C = A + B). Compatible con el cliente original. */
+    /** Inicia una simulación con el programa por defecto (C = A + B) */
     @PostMapping("/iniciar")
     public RespuestaInicioDTO iniciar(
             @RequestParam("tipo") String tipo,
@@ -38,7 +38,7 @@ public class SimuladorController {
         return simuladorService.iniciar(solicitud, true);
     }
 
-    /** Crea una simulación con programa propio y parámetros de hardware (cuerpo JSON) */
+    /** Crea una simulación con programa propio y parámetros de hardware */
     @PostMapping("/sesiones")
     public RespuestaInicioDTO crearSesion(@RequestBody SolicitudSimulacionDTO solicitud) {
         return simuladorService.iniciar(solicitud, false);

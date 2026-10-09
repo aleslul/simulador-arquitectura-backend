@@ -12,18 +12,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Lógica común de todas las arquitecturas (Template Method).
- * La ISA, el ciclo fetch → decode → execute, las banderas, los fallos y la contabilidad de ciclos viven aquí.
- * Cada arquitectura solo define DÓNDE están los datos y CUÁNTO cuesta acceder a ellos:
- * {@link #leerInstruccion}, {@link #leerDato}, {@link #escribirDato} (comportamiento funcional) y
- * {@link #accesoInstruccion}, {@link #accesoDato} (temporización y conflictos de recursos).
- *
- * Modelo de tiempos: cada paso ejecuta UNA instrucción. Se calcula en qué ciclo empieza y termina cada fase
- * respetando (1) la unidad de ejecución, que atiende una instrucción a la vez, y (2) los recursos compartidos
- * (un único bus en Von Neumann). En modo SEGMENTADO el fetch de la instrucción siguiente puede empezar mientras
- * se ejecuta la actual (buffer de prefetch de 1 instrucción); tras un salto tomado, el fetch siguiente espera a que
- * el salto termine (penalización por vaciado, sin modelar el fetch descartado). Se asume coherencia ideal: una
- * instrucción prefetcheada ve las escrituras de las anteriores.
+ * Lógica común de todas las arquitecturas usando metodo template
+ * La ISA, el ciclo fetch - decode - execute, las banderas, los fallos y la contabilidad de ciclos estan aqui, lamentablemente
+ * Cada arquitectura solo define DONDE están los datos y CUANTO cuesta acceder a ellos para una simulacion mas fiel y menos complicada
+ * Modelo de tiempos:cada paso ejecuta una sola instruccion y se calcula en qué ciclo empieza y termina cada fase
+ * respetando la unidad de ejecucion que atiende una instrucción a la vez y los recursos compartidos
+ * como el bus compartido de neumman
+ * En modo segmentado el fetch de la instrucción siguiente puede empezar mientras
+ * se ejecuta la actual tras un salto tomado el fetch siguiente espera a que
+ * el salto termine y sse asume coherencia ideal donde una
+ * instrucción prefetcheada ve las escrituras de las anteriores
  */
 public abstract class ArquitecturaBase {
 
@@ -46,17 +44,17 @@ public abstract class ArquitecturaBase {
     }
 
     // -------------------------------------------------------------
-    // Puntos de extensión: lo único que cambia entre arquitecturas
+    // Puntos de extension
     // -------------------------------------------------------------
 
-    /** Lee la palabra de instrucción de la dirección dada (comportamiento funcional). */
+    /** Lee la palabra de instruccion de la direccion dada */
     protected abstract int leerInstruccion(int direccion);
 
     protected abstract int leerDato(int direccion);
 
     protected abstract void escribirDato(int direccion, int valor);
 
-    /** Reserva los recursos para un fetch solicitado en el ciclo {@code solicitud} y devuelve cuándo ocurre. */
+    /** Reserva los recursos para un fetch solicitado en el ciclo y devuelve cuanndo ocurre */
     protected abstract Acceso accesoInstruccion(int direccion, int solicitud);
 
     protected abstract Acceso accesoDato(int direccion, boolean escritura, int solicitud);
@@ -211,7 +209,7 @@ public abstract class ArquitecturaBase {
         }
     }
 
-    /** Estado actual sin avanzar la simulación. */
+    /** Estado actual sin avanzar la simulación */
     public final EstadoSimulacionDTO estadoActual() {
         String log = finalizado
                 ? (error != null ? "La máquina está detenida por un fallo: " + error : "Programa finalizado.")
@@ -239,7 +237,7 @@ public abstract class ArquitecturaBase {
     // Carga de programas (validación común)
     // -------------------------------------
 
-    /** Von Neumann y Harvard modificada: código y datos comparten la misma memoria. */
+    /** Von Neumann lol */
     protected final void cargarEnMemoriaUnificada(ProgramaEnsamblado programa, Memoria memoria) {
         int n = programa.palabras().length;
         if (n > memoria.getTamano()) {

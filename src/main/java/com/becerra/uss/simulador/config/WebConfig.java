@@ -6,7 +6,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CORS configurable. En desarrollo el valor por defecto "*" permite cualquier origen
+  la config del cors noma
  */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {

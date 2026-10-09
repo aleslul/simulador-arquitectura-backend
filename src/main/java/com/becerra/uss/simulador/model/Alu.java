@@ -15,7 +15,7 @@ public final class Alu {
     public record Resultado(int valor, boolean z, boolean n, boolean c, boolean v) {
     }
 
-    /** Ajusta un entero a complemento a dos de {@code bits} bits (p. ej. 32768 con 16 bits -> -32768). */
+    /** ENTRA UN ENTERO DE 32 BITS QUE ES EN LO QUE FUNCIONA LA VM DE JAVA Y LO CONVIERTE A MENOS PARA Q LO LEA EL ALU*/
     public static int normalizar(int valor, int bits) {
         int desplazamiento = 32 - bits;
         return (valor << desplazamiento) >> desplazamiento;
@@ -25,6 +25,7 @@ public final class Alu {
         long mascara = mascara(bits);
         long suma = (a & mascara) + (b & mascara);
         int resultado = normalizar((int) suma, bits);
+        //FLAGS
         boolean c = suma > mascara;
         boolean sa = normalizar(a, bits) < 0;
         boolean sb = normalizar(b, bits) < 0;
@@ -36,6 +37,7 @@ public final class Alu {
         long mascara = mascara(bits);
         long diferencia = (a & mascara) - (b & mascara);
         int resultado = normalizar((int) diferencia, bits);
+        // FLAGS
         boolean c = diferencia < 0; // hubo préstamo
         boolean sa = normalizar(a, bits) < 0;
         boolean sb = normalizar(b, bits) < 0;
@@ -43,6 +45,7 @@ public final class Alu {
         return new Resultado(resultado, resultado == 0, resultado < 0, c, v);
     }
 
+    /** LA MASCARA LLENA DE PUROS 1 PARA EL BUS ASI NOS ASEGURAMOS Q LA SUMA O RESTA FUNCIONEN BIEN A PESAR DE LOS 32 BITS MIN EN LOS Q FUNCIONA LA VM DE JAVA*/
     private static long mascara(int bits) {
         return (1L << bits) - 1;
     }
