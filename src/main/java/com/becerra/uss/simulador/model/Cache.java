@@ -1,11 +1,11 @@
 package com.becerra.uss.simulador.model;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-/**
-    TODO: ESTO ES DEL HARVARD MODIFICADO Y TPCO FUNCIONA ZZZ
- */
+/** Caché L1 totalmente asociativa con política de reemplazo LRU (Least Recently Used). */
 public class Cache {
     private final String nombre;
     private final int capacidad;
@@ -50,4 +50,8 @@ public class Cache {
     public String getNombre() { return nombre; }
     public int getAciertos() { return aciertos; }
     public int getFallos() { return fallos; }
+
+    public List<Integer> getEstadoLineas() {
+        return new ArrayList<>(lineas.keySet());
+    }
 }

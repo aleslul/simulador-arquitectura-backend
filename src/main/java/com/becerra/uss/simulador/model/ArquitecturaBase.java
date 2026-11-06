@@ -11,18 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Lógica común de todas las arquitecturas usando metodo template
- * La ISA, el ciclo fetch - decode - execute, las banderas, los fallos y la contabilidad de ciclos estan aqui, lamentablemente
- * Cada arquitectura solo define DONDE están los datos y CUANTO cuesta acceder a ellos para una simulacion mas fiel y menos complicada
- * Modelo de tiempos:cada paso ejecuta una sola instruccion y se calcula en qué ciclo empieza y termina cada fase
- * respetando la unidad de ejecucion que atiende una instrucción a la vez y los recursos compartidos
- * como el bus compartido de neumman
- * En modo segmentado el fetch de la instrucción siguiente puede empezar mientras
- * se ejecuta la actual tras un salto tomado el fetch siguiente espera a que
- * el salto termine y sse asume coherencia ideal donde una
- * instrucción prefetcheada ve las escrituras de las anteriores
- */
 public abstract class ArquitecturaBase {
 
     protected final ConfiguracionSimulador config;
@@ -43,18 +31,12 @@ public abstract class ArquitecturaBase {
         this.config = config;
     }
 
-    // -------------------------------------------------------------
-    // Puntos de extension
-    // -------------------------------------------------------------
-
-    /** Lee la palabra de instruccion de la direccion dada */
     protected abstract int leerInstruccion(int direccion);
 
     protected abstract int leerDato(int direccion);
 
     protected abstract void escribirDato(int direccion, int valor);
 
-    /** Reserva los recursos para un fetch solicitado en el ciclo y devuelve cuanndo ocurre */
     protected abstract Acceso accesoInstruccion(int direccion, int solicitud);
 
     protected abstract Acceso accesoDato(int direccion, boolean escritura, int solicitud);
@@ -68,10 +50,6 @@ public abstract class ArquitecturaBase {
     protected EstadisticasCacheDTO estadisticasCache() {
         return null;
     }
-
-    // --------------------
-    // Ciclo de instrucción
-    // --------------------
 
     public final EstadoSimulacionDTO ejecutarPaso() {
         if (finalizado) {
@@ -93,18 +71,21 @@ public abstract class ArquitecturaBase {
                     : inicioEjecucionAnterior;
             final int palabra = capturarInstruccion(pc);
             final Acceso fetch = accesoInstruccion(pc, solicitudFetch);
-            ciclosEsperaRecurso += fetch.inicio() - solicitudFetch;
+            int esperaFetch = fetch.inicio() - solicitudFetch;
+            if (esperaFetch > 0) {
+                ciclosEsperaRecurso += esperaFetch;
+            }
             cpu.setMar(pc);
             cpu.setMdr(palabra);
             registrar(eventos, "FETCH", fetch.recurso(), fetch.inicio(), fetch.fin(), pc, palabra,
                     "Lee la instrucción de la dirección " + pc + detalleCache(fetch)
-                            + esperaTexto(fetch.inicio() - solicitudFetch));
+                            + esperaTexto(esperaFetch));
 
             // ---------------- DECODE ----------------
             final int inicioEjecucion = Math.max(fetch.fin(), finEjecucionAnterior);
             int t = inicioEjecucion + config.tiempoDecodificacion();
             ultimoFinEvento = Math.max(ultimoFinEvento, t);
-            instruccion = Instruccion.decodificar(palabra); // puede lanzar OPCODE_INVALIDO
+            instruccion = Instruccion.decodificar(palabra);
             cpu.setIr(instruccion.toString());
             if (config.tiempoDecodificacion() > 0) {
                 registrar(eventos, "DECODE", "UNIDAD_CONTROL", inicioEjecucion, t, null, palabra,
@@ -122,24 +103,30 @@ public abstract class ArquitecturaBase {
                 case LOAD -> {
                     int valor = leerDato(dir);
                     Acceso a = accesoDato(dir, false, t);
-                    ciclosEsperaRecurso += a.inicio() - t;
+                    int esperaLoad = a.inicio() - t;
+                    if (esperaLoad > 0) {
+                        ciclosEsperaRecurso += esperaLoad;
+                    }
                     cpu.setMar(dir);
                     cpu.setMdr(valor);
                     cpu.setAcumulador(valor);
                     cpu.getFlags().actualizarZN(valor);
                     registrar(eventos, "MEM_LECTURA", a.recurso(), a.inicio(), a.fin(), dir, valor,
-                            "ACC <- MEM[" + dir + "] = " + valor + detalleCache(a) + esperaTexto(a.inicio() - t));
+                            "ACC <- MEM[" + dir + "] = " + valor + detalleCache(a) + esperaTexto(esperaLoad));
                     t = a.fin();
                 }
 
                 case ADD, SUB, CMP -> {
                     int valor = leerDato(dir);
                     Acceso a = accesoDato(dir, false, t);
-                    ciclosEsperaRecurso += a.inicio() - t;
+                    int esperaAlu = a.inicio() - t;
+                    if (esperaAlu > 0) {
+                        ciclosEsperaRecurso += esperaAlu;
+                    }
                     cpu.setMar(dir);
                     cpu.setMdr(valor);
                     registrar(eventos, "MEM_LECTURA", a.recurso(), a.inicio(), a.fin(), dir, valor,
-                            "Lee MEM[" + dir + "] = " + valor + detalleCache(a) + esperaTexto(a.inicio() - t));
+                            "Lee MEM[" + dir + "] = " + valor + detalleCache(a) + esperaTexto(esperaAlu));
                     t = a.fin();
 
                     int bits = config.anchoAlu();
@@ -163,11 +150,14 @@ public abstract class ArquitecturaBase {
                     int valor = cpu.getAcumulador();
                     escribirDato(dir, valor);
                     Acceso a = accesoDato(dir, true, t);
-                    ciclosEsperaRecurso += a.inicio() - t;
+                    int esperaStore = a.inicio() - t;
+                    if (esperaStore > 0) {
+                        ciclosEsperaRecurso += esperaStore;
+                    }
                     cpu.setMar(dir);
                     cpu.setMdr(valor);
                     registrar(eventos, "MEM_ESCRITURA", a.recurso(), a.inicio(), a.fin(), dir, valor,
-                            "MEM[" + dir + "] <- ACC = " + valor + esperaTexto(a.inicio() - t));
+                            "MEM[" + dir + "] <- ACC = " + valor + esperaTexto(esperaStore));
                     t = a.fin();
                 }
 
@@ -209,17 +199,12 @@ public abstract class ArquitecturaBase {
         }
     }
 
-    /** Estado actual sin avanzar la simulación */
     public final EstadoSimulacionDTO estadoActual() {
         String log = finalizado
                 ? (error != null ? "La máquina está detenida por un fallo: " + error : "Programa finalizado.")
                 : "Estado actual (sin ejecutar ningún paso).";
         return construirEstado(log, List.of(), 0);
     }
-
-    // ------------------------------------------------
-    // Consultas (para el servicio y las comparaciones)
-    // ------------------------------------------------
 
     public final boolean isFinalizado() { return finalizado; }
     public final String getError() { return error; }
@@ -233,11 +218,6 @@ public abstract class ArquitecturaBase {
         return instruccionesEjecutadas == 0 ? 0.0 : Math.round(100.0 * ciclosReloj / instruccionesEjecutadas) / 100.0;
     }
 
-    // -------------------------------------
-    // Carga de programas (validación común)
-    // -------------------------------------
-
-    /** Von Neumann lol */
     protected final void cargarEnMemoriaUnificada(ProgramaEnsamblado programa, Memoria memoria) {
         int n = programa.palabras().length;
         if (n > memoria.getTamano()) {
@@ -263,7 +243,6 @@ public abstract class ArquitecturaBase {
         longitudPrograma = n;
     }
 
-    /** Harvard pura: el código va a la memoria de instrucciones y los datos a la de datos. */
     protected final void cargarEnHarvard(ProgramaEnsamblado programa, Memoria instrucciones, Memoria datos) {
         int n = programa.palabras().length;
         if (n > instrucciones.getTamano()) {
@@ -296,21 +275,12 @@ public abstract class ArquitecturaBase {
         }
     }
 
-    // -----------------------------
-    // Utilidades para las subclases
-    // -----------------------------
-
-    /** Reserva {@code recurso} por {@code duracion} ciclos a partir de {@code solicitud}. */
     protected static Acceso reservar(Recurso recurso, int solicitud, int duracion, Boolean acierto) {
         int inicio = recurso.inicioDisponible(solicitud);
         int fin = inicio + duracion;
         recurso.ocupar(fin);
         return new Acceso(inicio, fin, recurso.getNombre(), acierto);
     }
-
-    // --------
-    // Internos
-    // --------
 
     private int capturarInstruccion(int pc) {
         try {

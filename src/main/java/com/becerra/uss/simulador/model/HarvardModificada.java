@@ -2,9 +2,6 @@ package com.becerra.uss.simulador.model;
 
 import com.becerra.uss.simulador.DTO.EstadisticasCacheDTO;
 
-/**
- * TODO: NO ESTA FUNCIONANDO QUE PEREZA QUITARLO
- */
 public final class HarvardModificada extends ArquitecturaBase {
 
     private final Memoria ram;
@@ -52,8 +49,8 @@ public final class HarvardModificada extends ArquitecturaBase {
     protected Acceso accesoDato(int direccion, boolean escritura, int solicitud) {
         if (escritura) {
             Acceso a = reservarConRam(puertoL1d, solicitud, config.latenciaMemoria(), "L1D→RAM", null);
-            l1d.insertar(direccion);   // write-allocate
-            l1i.invalidar(direccion);  // por si se modificó una instrucción
+            l1d.insertar(direccion);
+            l1i.invalidar(direccion);
             return a;
         }
         boolean acierto = l1d.acceder(direccion);
@@ -65,7 +62,6 @@ public final class HarvardModificada extends ArquitecturaBase {
         return a;
     }
 
-    /** Reserva a la vez el puerto de la caché y la RAM (empieza cuando ambos están libres). */
     private Acceso reservarConRam(Recurso puerto, int solicitud, int duracion, String nombre, Boolean acierto) {
         int inicio = Math.max(puerto.inicioDisponible(solicitud), busRam.inicioDisponible(solicitud));
         int fin = inicio + duracion;
@@ -91,6 +87,13 @@ public final class HarvardModificada extends ArquitecturaBase {
 
     @Override
     protected EstadisticasCacheDTO estadisticasCache() {
-        return new EstadisticasCacheDTO(l1i.getAciertos(), l1i.getFallos(), l1d.getAciertos(), l1d.getFallos());
+        return new EstadisticasCacheDTO(
+                l1i.getAciertos(),
+                l1i.getFallos(),
+                l1d.getAciertos(),
+                l1d.getFallos(),
+                l1i.getEstadoLineas(),
+                l1d.getEstadoLineas()
+        );
     }
 }
