@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+// expone los endpoints REST para controlar la simulacion y obtener comparativas de rendimiento
 @RestController
 @RequestMapping("/api/simulador")
 public class SimuladorController {
@@ -32,7 +33,7 @@ public class SimuladorController {
             @RequestParam(value = "valorA", defaultValue = "5") int valorA,
             @RequestParam(value = "valorB", defaultValue = "7") int valorB) {
         SolicitudSimulacionDTO solicitud = new SolicitudSimulacionDTO(
-                tipo, modo, valorA, valorB, null, null, null, null, null, null, "LRU");
+                tipo, modo, valorA, valorB, null, null, null, null, null, null, null, null, null, "LRU");
         return simuladorService.iniciar(solicitud, true);
     }
 
@@ -74,7 +75,7 @@ public class SimuladorController {
             @RequestParam(value = "valorA", defaultValue = "5") int valorA,
             @RequestParam(value = "valorB", defaultValue = "7") int valorB) {
         return simuladorService.comparar(new SolicitudSimulacionDTO(
-                null, null, valorA, valorB, null, null, null, null, null, null, "LRU"));
+                null, null, valorA, valorB, null, null, null, null, null, null, null, null, null, "LRU"));
     }
 
     @PostMapping("/comparar")

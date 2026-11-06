@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+// servicio principal que administra las sesiones activas y ejecuta las comparaciones de rendimiento
 @Service
 public class SimuladorService {
 
@@ -47,6 +48,7 @@ public class SimuladorService {
         this.inactividadMaximaMs = inactividadMinutos * 60_000L;
     }
 
+    // encapsula el estado de una sesion individual de simulacion de forma segura para hilos
     private static final class Sesion {
         private final ConfiguracionSimulador config;
         private final String programa;
@@ -79,15 +81,14 @@ public class SimuladorService {
             }
             EstadoSimulacionDTO estado = arquitectura.estadoActual();
             if (!arquitectura.isFinalizado()) {
-                return estado.conLog("Se alcanzó el límite de " + maxPasos
-                        + " pasos sin terminar (¿bucle infinito?). Puede continuar con /paso o /ejecutar-todo.");
+                return estado.conLog("Se alcanzo el limite de " + maxPasos + " pasos sin terminar");
             }
             if (arquitectura.getError() != null) {
-                return estado.conLog("La ejecución terminó con un fallo tras " + pasos + " pasos: "
+                return estado.conLog("La ejecucion termino con un fallo tras " + pasos + " pasos: "
                         + arquitectura.getError());
             }
-            return estado.conLog("Ejecución completa en " + pasos + " pasos. Ciclos totales: "
-                    + estado.ciclosReloj() + ", CPI: " + estado.cpi() + ".");
+            return estado.conLog("Ejecucion completa en " + pasos + " pasos | Ciclos totales: "
+                    + estado.ciclosReloj() + " | CPI: " + estado.cpi());
         }
 
         synchronized void reiniciar() {
@@ -95,6 +96,7 @@ public class SimuladorService {
         }
     }
 
+    // crea una nueva sesion de simulacion con la configuracion y el programa indicados
     public RespuestaInicioDTO iniciar(SolicitudSimulacionDTO solicitud, boolean comoPorDefecto) {
         TipoArquitectura tipo = TipoArquitectura.desdeTexto(solicitud.tipo());
         ModoEjecucion modo = ModoEjecucion.desdeTexto(solicitud.modo());
@@ -103,7 +105,7 @@ public class SimuladorService {
         ArquitecturaBase arquitectura = FabricaArquitectura.crear(config, Ensamblador.ensamblar(programa));
 
         limpiarSesiones();
-        Sesion sesion = new newSesion(config, programa, arquitectura);
+        Sesion sesion = new Sesion(config, programa, arquitectura);
         String id = UUID.randomUUID().toString();
         sesiones.put(id, sesion);
         if (comoPorDefecto) {
@@ -112,10 +114,6 @@ public class SimuladorService {
         return new RespuestaInicioDTO(id,
                 "Simulador " + tipo.name() + " (" + modo.name() + ") iniciado correctamente",
                 tipo.name(), modo.name(), programa);
-    }
-
-    private Sesion newSesion(ConfiguracionSimulador config, String programa, ArquitecturaBase arquitectura) {
-        return new Sesion(config, programa, arquitectura);
     }
 
     public EstadoSimulacionDTO ejecutarPaso(String sesionId) {
@@ -129,7 +127,7 @@ public class SimuladorService {
     public EstadoSimulacionDTO ejecutarTodo(String sesionId, int maxPasos) {
         if (maxPasos < 1 || maxPasos > MAX_PASOS_LIMITE) {
             throw new SolicitudInvalidaException("MAX_PASOS_INVALIDO",
-                    "maxPasos debe estar entre 1 y " + MAX_PASOS_LIMITE + ".");
+                    "maxPasos debe estar entre 1 y " + MAX_PASOS_LIMITE);
         }
         return obtener(sesionId).ejecutarTodo(maxPasos);
     }
@@ -140,6 +138,7 @@ public class SimuladorService {
         return sesion.estado();
     }
 
+    // ejecuta el mismo programa en todas las arquitecturas y modos para comparar metricas y speedup
     public List<ResultadoComparacionDTO> comparar(SolicitudSimulacionDTO solicitud) {
         ProgramaEnsamblado programaPropio = esVacio(solicitud.programa()) ? null : Ensamblador.ensamblar(solicitud.programa());
 
@@ -164,7 +163,7 @@ public class SimuladorService {
                     boolean completado = arq.isFinalizado() && arq.getError() == null;
                     String error = arq.getError();
                     if (!arq.isFinalizado()) {
-                        error = "LIMITE_DE_PASOS: no terminó en " + MAX_PASOS_POR_DEFECTO + " pasos.";
+                        error = "LIMITE_DE_PASOS: no termino en " + MAX_PASOS_POR_DEFECTO + " pasos";
                     }
                     mediciones.add(new Medicion(tipo, modo, arq.getCiclosReloj(), arq.getInstruccionesEjecutadas(),
                             arq.cpi(), arq.getCiclosEsperaRecurso(), completado, error, arq.getEstadisticasCache()));
@@ -214,6 +213,7 @@ public class SimuladorService {
         return sesion;
     }
 
+    // combina los parametros enviados por el usuario con los valores por defecto del simulador
     private ConfiguracionSimulador construirConfiguracion(TipoArquitectura tipo, ModoEjecucion modo,
                                                           SolicitudSimulacionDTO s) {
         ConfiguracionSimulador base = ConfiguracionSimulador.porDefecto(tipo, modo);
@@ -228,7 +228,9 @@ public class SimuladorService {
                 base.tamMemoriaDatos(),
                 base.tamMemoriaUnificada(),
                 o(s.lineasCache(), base.lineasCache()),
-                base.latenciaCache(),
+                o(s.latenciaCache(), base.latenciaCache()),
+                o(s.lineasCacheL2(), base.lineasCacheL2()),
+                o(s.latenciaCacheL2(), base.latenciaCacheL2()),
                 alg);
     }
 

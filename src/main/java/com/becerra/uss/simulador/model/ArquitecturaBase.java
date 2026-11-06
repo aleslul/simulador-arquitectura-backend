@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+// clase base que implementa el ciclo fetch decode execute y la temporizacion de recursos
 public abstract class ArquitecturaBase {
 
     protected final ConfiguracionSimulador config;
@@ -51,11 +52,12 @@ public abstract class ArquitecturaBase {
         return null;
     }
 
+    // ejecuta una instruccion completa calculando los ciclos de reloj de cada fase
     public final EstadoSimulacionDTO ejecutarPaso() {
         if (finalizado) {
             return construirEstado(error != null
-                    ? "La máquina está detenida por un fallo: " + error
-                    : "Programa finalizado.", List.of(), 0);
+                    ? "La maquina esta detenida por un fallo: " + error
+                    : "Programa finalizado", List.of(), 0);
         }
 
         final int ciclosAntes = ciclosReloj;
@@ -64,7 +66,7 @@ public abstract class ArquitecturaBase {
         Instruccion instruccion = null;
 
         try {
-            // ---------------- FETCH ----------------
+            // fase de busqueda de instruccion en memoria o cache
             final int pc = cpu.getPc();
             final int solicitudFetch = (config.modo() == ModoEjecucion.SECUENCIAL || saltoTomadoAnterior)
                     ? finEjecucionAnterior
@@ -78,10 +80,10 @@ public abstract class ArquitecturaBase {
             cpu.setMar(pc);
             cpu.setMdr(palabra);
             registrar(eventos, "FETCH", fetch.recurso(), fetch.inicio(), fetch.fin(), pc, palabra,
-                    "Lee la instrucción de la dirección " + pc + detalleCache(fetch)
+                    "Lee la instruccion de la direccion " + pc + detalleCache(fetch)
                             + esperaTexto(esperaFetch));
 
-            // ---------------- DECODE ----------------
+            // fase de decodificacion de la instruccion en la unidad de control
             final int inicioEjecucion = Math.max(fetch.fin(), finEjecucionAnterior);
             int t = inicioEjecucion + config.tiempoDecodificacion();
             ultimoFinEvento = Math.max(ultimoFinEvento, t);
@@ -92,7 +94,7 @@ public abstract class ArquitecturaBase {
                         "Decodifica " + instruccion);
             }
 
-            // ---------------- EXECUTE ----------------
+            // fase de ejecucion segun el codigo de operacion
             final Opcode op = instruccion.opcode();
             final int dir = instruccion.operando();
             boolean saltoTomado = false;
@@ -157,7 +159,7 @@ public abstract class ArquitecturaBase {
                     cpu.setMar(dir);
                     cpu.setMdr(valor);
                     registrar(eventos, "MEM_ESCRITURA", a.recurso(), a.inicio(), a.fin(), dir, valor,
-                            "MEM[" + dir + "] <- ACC = " + valor + esperaTexto(esperaStore));
+                            "MEM[" + dir + "] <- ACC = " + valor + " [Write-Through L1D->L2->RAM]" + esperaTexto(esperaStore));
                     t = a.fin();
                 }
 
@@ -167,7 +169,7 @@ public abstract class ArquitecturaBase {
                     if (config.tiempoSalto() > 0) {
                         registrar(eventos, "SALTO", "UNIDAD_CONTROL", t, finSalto, dir, null,
                                 saltoTomado ? "Salto tomado: PC <- " + dir
-                                        : "Salto NO tomado (Z=0): continúa en PC+1");
+                                        : "Salto NO tomado (Z=0): continua en PC+1");
                     }
                     if (saltoTomado) {
                         cpu.setPc(dir);
@@ -176,7 +178,7 @@ public abstract class ArquitecturaBase {
                 }
             }
 
-            // ---------------- Cierre del paso ----------------
+            // actualiza el contador de programa y los contadores globales del paso
             if (!finalizado && !saltoTomado) {
                 cpu.incrementarPc();
             }
@@ -195,14 +197,14 @@ public abstract class ArquitecturaBase {
             ciclosReloj = Math.max(ciclosReloj, ultimoFinEvento);
             int ciclosPaso = ciclosReloj - ciclosAntes;
             return construirEstado("FALLO [" + e.getCodigo() + "]: " + e.getMessage()
-                    + " La máquina se detuvo en el PC=" + cpu.getPc() + ".", eventos, ciclosPaso);
+                    + " La maquina se detuvo en el PC=" + cpu.getPc(), eventos, ciclosPaso);
         }
     }
 
     public final EstadoSimulacionDTO estadoActual() {
         String log = finalizado
-                ? (error != null ? "La máquina está detenida por un fallo: " + error : "Programa finalizado.")
-                : "Estado actual (sin ejecutar ningún paso).";
+                ? (error != null ? "La maquina esta detenida por un fallo: " + error : "Programa finalizado")
+                : "Estado inicial listo para ejecutar";
         return construirEstado(log, List.of(), 0);
     }
 
@@ -218,11 +220,12 @@ public abstract class ArquitecturaBase {
         return instruccionesEjecutadas == 0 ? 0.0 : Math.round(100.0 * ciclosReloj / instruccionesEjecutadas) / 100.0;
     }
 
+    // escribe las instrucciones y datos iniciales en una memoria unificada
     protected final void cargarEnMemoriaUnificada(ProgramaEnsamblado programa, Memoria memoria) {
         int n = programa.palabras().length;
         if (n > memoria.getTamano()) {
             throw new SolicitudInvalidaException("PROGRAMA_DEMASIADO_GRANDE",
-                    "El programa tiene " + n + " instrucciones y la memoria solo tiene " + memoria.getTamano() + " posiciones.");
+                    "El programa tiene " + n + " instrucciones y la memoria solo tiene " + memoria.getTamano() + " posiciones");
         }
         for (int i = 0; i < n; i++) {
             memoria.escribir(i, programa.palabras()[i]);
@@ -231,11 +234,11 @@ public abstract class ArquitecturaBase {
             int direccion = d.getKey();
             if (direccion >= memoria.getTamano()) {
                 throw new SolicitudInvalidaException("DATO_FUERA_DE_RANGO",
-                        "La dirección de dato " + direccion + " no existe (la memoria tiene " + memoria.getTamano() + " posiciones).");
+                        "La direccion de dato " + direccion + " no existe en la memoria");
             }
             if (direccion < n) {
                 throw new SolicitudInvalidaException("DATO_SOBRE_CODIGO",
-                        "La dirección de dato " + direccion + " pisa el código (las instrucciones ocupan 0-" + (n - 1) + ").");
+                        "La direccion de dato " + direccion + " pisa el codigo del programa");
             }
             validarValor(direccion, d.getValue(), memoria.getBits());
             memoria.escribir(direccion, d.getValue());
@@ -243,12 +246,12 @@ public abstract class ArquitecturaBase {
         longitudPrograma = n;
     }
 
+    // escribe las instrucciones y datos en memorias separadas para Harvard pura
     protected final void cargarEnHarvard(ProgramaEnsamblado programa, Memoria instrucciones, Memoria datos) {
         int n = programa.palabras().length;
         if (n > instrucciones.getTamano()) {
             throw new SolicitudInvalidaException("PROGRAMA_DEMASIADO_GRANDE",
-                    "El programa tiene " + n + " instrucciones y la memoria de instrucciones solo tiene "
-                            + instrucciones.getTamano() + " posiciones.");
+                    "El programa supera el tamano de la memoria de instrucciones");
         }
         for (int i = 0; i < n; i++) {
             instrucciones.escribir(i, programa.palabras()[i]);
@@ -257,7 +260,7 @@ public abstract class ArquitecturaBase {
             int direccion = d.getKey();
             if (direccion >= datos.getTamano()) {
                 throw new SolicitudInvalidaException("DATO_FUERA_DE_RANGO",
-                        "La dirección de dato " + direccion + " no existe (la memoria de datos tiene " + datos.getTamano() + " posiciones).");
+                        "La direccion de dato " + direccion + " supera la memoria de datos");
             }
             validarValor(direccion, d.getValue(), datos.getBits());
             datos.escribir(direccion, d.getValue());
@@ -270,8 +273,7 @@ public abstract class ArquitecturaBase {
         long max = (1L << bits) - 1;
         if (valor < min || valor > max) {
             throw new SolicitudInvalidaException("VALOR_FUERA_DE_RANGO",
-                    "El valor " + valor + " (dirección " + direccion + ") no cabe en una palabra de " + bits
-                            + " bits (rango " + min + " a " + max + ").");
+                    "El valor " + valor + " no cabe en una palabra de " + bits + " bits");
         }
     }
 
@@ -287,7 +289,7 @@ public abstract class ArquitecturaBase {
             return leerInstruccion(pc);
         } catch (FalloEjecucionException e) {
             throw new FalloEjecucionException("PC_FUERA_DE_RANGO",
-                    "El PC=" + pc + " apunta fuera de la memoria de instrucciones.");
+                    "El PC=" + pc + " apunta fuera de la memoria de instrucciones");
         }
     }
 
@@ -297,15 +299,22 @@ public abstract class ArquitecturaBase {
         ultimoFinEvento = Math.max(ultimoFinEvento, fin);
     }
 
+    // devuelve un texto descriptivo indicando en que nivel de cache hubo acierto o fallo
     private static String detalleCache(Acceso a) {
         if (a.acierto() == null) {
             return "";
         }
-        return a.acierto() ? " [acierto de caché]" : " [fallo de caché]";
+        if (a.acierto()) {
+            return " [Hit L1]";
+        }
+        if (a.recurso() != null && a.recurso().endsWith("->L2")) {
+            return " [Miss L1 -> Hit L2]";
+        }
+        return " [Miss L1 y L2 -> RAM]";
     }
 
     private static String esperaTexto(int espera) {
-        return espera > 0 ? " (esperó " + espera + " ciclos por recurso ocupado)" : "";
+        return espera > 0 ? " (espero " + espera + " ciclos por recurso ocupado)" : "";
     }
 
     private static String bit(boolean valor) {
@@ -315,16 +324,17 @@ public abstract class ArquitecturaBase {
     private String describirPaso(Instruccion instruccion, List<EventoFaseDTO> eventos, int ciclosPaso) {
         StringBuilder sb = new StringBuilder(instruccion.toString()).append(": ");
         if (instruccion.opcode() == Opcode.HALT) {
-            sb.append("fin de ejecución. ");
+            sb.append("fin de ejecucion ");
         }
         for (int i = 0; i < eventos.size(); i++) {
             EventoFaseDTO e = eventos.get(i);
             if (i > 0) {
-                sb.append(" → ");
+                sb.append(" -> ");
             }
-            sb.append(e.fase()).append(" [").append(e.cicloInicio()).append('-').append(e.cicloFin()).append(']');
+            sb.append(e.fase()).append(" (").append(e.recurso()).append(") [")
+                    .append(e.cicloInicio()).append('-').append(e.cicloFin()).append(']');
         }
-        sb.append(". Ciclos del paso: ").append(ciclosPaso).append(" (total: ").append(ciclosReloj).append(").");
+        sb.append(" | Paso: +").append(ciclosPaso).append(" ciclos (Total: ").append(ciclosReloj).append(")");
         return sb.toString();
     }
 
