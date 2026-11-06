@@ -14,8 +14,8 @@ public final class HarvardModificada extends ArquitecturaBase {
     public HarvardModificada(ConfiguracionSimulador config, ProgramaEnsamblado programa) {
         super(config);
         this.ram = new Memoria("RAM", config.tamMemoriaUnificada(), Instruccion.BITS_PALABRA);
-        this.l1i = new Cache("L1I", config.lineasCache());
-        this.l1d = new Cache("L1D", config.lineasCache());
+        this.l1i = new Cache("L1I", config.lineasCache(), config.algoritmoReemplazo());
+        this.l1d = new Cache("L1D", config.lineasCache(), config.algoritmoReemplazo());
         cargarEnMemoriaUnificada(programa, ram);
     }
 

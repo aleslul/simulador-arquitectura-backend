@@ -29,7 +29,8 @@ public record ConfiguracionSimulador(
         int tamMemoriaDatos,
         int tamMemoriaUnificada,
         int lineasCache,
-        int latenciaCache) {
+        int latenciaCache,
+        String algoritmoReemplazo) {
 
     public ConfiguracionSimulador {
         if (tipo == null || modo == null) {
@@ -45,20 +46,26 @@ public record ConfiguracionSimulador(
         rango("tamMemoriaUnificada", tamMemoriaUnificada, 4, Instruccion.MAX_OPERANDO + 1);
         rango("lineasCache", lineasCache, 1, 1024);
         rango("latenciaCache", latenciaCache, 1, 100);
+
+        algoritmoReemplazo = (algoritmoReemplazo == null || algoritmoReemplazo.isBlank())
+                ? "LRU"
+                : algoritmoReemplazo.trim().toUpperCase(Locale.ROOT);
+        if (!algoritmoReemplazo.equals("LRU") && !algoritmoReemplazo.equals("FIFO")) {
+            throw new SolicitudInvalidaException("CONFIGURACION_INVALIDA",
+                    "El algoritmo de reemplazo debe ser LRU o FIFO (recibido: " + algoritmoReemplazo + ").");
+        }
     }
 
     public static ConfiguracionSimulador porDefecto(TipoArquitectura tipo, ModoEjecucion modo) {
-        return new ConfiguracionSimulador(tipo, modo, 3, 1, 1, 1, 16, 16, 16, 32, 8, 1);
+        return new ConfiguracionSimulador(tipo, modo, 3, 1, 1, 1, 16, 16, 16, 32, 8, 1, "LRU");
     }
 
-    /** LO MISMO PERO PARA HACER COMPARACIONES PERO NO LO PONDREMOS AL FRONTEND PQ CHATGPT NO QUIERE Y YO TAMPOCO QUIERO TOCAR JS */
     public ConfiguracionSimulador con(TipoArquitectura nuevoTipo, ModoEjecucion nuevoModo) {
         return new ConfiguracionSimulador(nuevoTipo, nuevoModo, latenciaMemoria, tiempoDecodificacion, tiempoAlu,
                 tiempoSalto, anchoDatos, tamMemoriaInstrucciones, tamMemoriaDatos, tamMemoriaUnificada,
-                lineasCache, latenciaCache);
+                lineasCache, latenciaCache, algoritmoReemplazo);
     }
 
-    /** EL ANCHO DE BITS EN LOS QUE OPERA EL ALU Y EL ACUMULADOR */
     public int anchoAlu() {
         return tipo == TipoArquitectura.HARVARD ? anchoDatos : Instruccion.BITS_PALABRA;
     }

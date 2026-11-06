@@ -24,5 +24,6 @@ public record SolicitudSimulacionDTO(
         Integer tiempoDecodificacion,
         Integer tiempoAlu,
         Integer anchoDatos,
-        Integer lineasCache) {
+        Integer lineasCache,
+        String algoritmoReemplazo) {
 }

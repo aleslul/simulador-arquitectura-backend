@@ -27,11 +27,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/**
- * Administra las simulaciones. Cada simulación vive en su propia sesión (identificada por un UUID), por lo que
- * varios usuarios o pestañas no se pisan entre sí. La sesión "default" existe solo por compatibilidad con clientes
- * antiguos que no envían sesionId: apunta a la última simulación creada con POST /iniciar.
- */
 @Service
 public class SimuladorService {
 
@@ -52,11 +47,6 @@ public class SimuladorService {
         this.inactividadMaximaMs = inactividadMinutos * 60_000L;
     }
 
-    // ------
-    // Sesión
-    // ------
-
-    /** Estado mutable de una simulación; todos sus métodos están sincronizados. */
     private static final class Sesion {
         private final ConfiguracionSimulador config;
         private final String programa;
@@ -105,11 +95,6 @@ public class SimuladorService {
         }
     }
 
-    // -----------
-    // Operaciones
-    // -----------
-
-    /** @param comoPorDefecto si es true, también se registra como la sesión "default" (compatibilidad). */
     public RespuestaInicioDTO iniciar(SolicitudSimulacionDTO solicitud, boolean comoPorDefecto) {
         TipoArquitectura tipo = TipoArquitectura.desdeTexto(solicitud.tipo());
         ModoEjecucion modo = ModoEjecucion.desdeTexto(solicitud.modo());
@@ -118,7 +103,7 @@ public class SimuladorService {
         ArquitecturaBase arquitectura = FabricaArquitectura.crear(config, Ensamblador.ensamblar(programa));
 
         limpiarSesiones();
-        Sesion sesion = new Sesion(config, programa, arquitectura);
+        Sesion sesion = new newSesion(config, programa, arquitectura);
         String id = UUID.randomUUID().toString();
         sesiones.put(id, sesion);
         if (comoPorDefecto) {
@@ -127,6 +112,10 @@ public class SimuladorService {
         return new RespuestaInicioDTO(id,
                 "Simulador " + tipo.name() + " (" + modo.name() + ") iniciado correctamente",
                 tipo.name(), modo.name(), programa);
+    }
+
+    private Sesion newSesion(ConfiguracionSimulador config, String programa, ArquitecturaBase arquitectura) {
+        return new Sesion(config, programa, arquitectura);
     }
 
     public EstadoSimulacionDTO ejecutarPaso(String sesionId) {
@@ -145,17 +134,12 @@ public class SimuladorService {
         return obtener(sesionId).ejecutarTodo(maxPasos);
     }
 
-    /** Vuelve al estado inicial de la misma simulación (mismo programa y configuración). */
     public EstadoSimulacionDTO reiniciar(String sesionId) {
         Sesion sesion = obtener(sesionId);
         sesion.reiniciar();
         return sesion.estado();
     }
 
-    /**
-     * Ejecuta el mismo programa hasta el final en las tres arquitecturas y los dos modos. Los campos tipo y modo de
-     * la solicitud se ignoran. Si no se envía programa, se usa la suma (con las direcciones propias de cada arquitectura).
-     */
     public List<ResultadoComparacionDTO> comparar(SolicitudSimulacionDTO solicitud) {
         ProgramaEnsamblado programaPropio = esVacio(solicitud.programa()) ? null : Ensamblador.ensamblar(solicitud.programa());
 
@@ -217,10 +201,6 @@ public class SimuladorService {
                 valorB != null ? valorB : VALOR_B_POR_DEFECTO);
     }
 
-    // --------
-    // Internos
-    // --------
-
     private Sesion obtener(String sesionId) {
         String id = esVacio(sesionId) ? SESION_POR_DEFECTO : sesionId;
         Sesion sesion = sesiones.get(id);
@@ -237,6 +217,7 @@ public class SimuladorService {
     private ConfiguracionSimulador construirConfiguracion(TipoArquitectura tipo, ModoEjecucion modo,
                                                           SolicitudSimulacionDTO s) {
         ConfiguracionSimulador base = ConfiguracionSimulador.porDefecto(tipo, modo);
+        String alg = esVacio(s.algoritmoReemplazo()) ? base.algoritmoReemplazo() : s.algoritmoReemplazo();
         return new ConfiguracionSimulador(tipo, modo,
                 o(s.latenciaMemoria(), base.latenciaMemoria()),
                 o(s.tiempoDecodificacion(), base.tiempoDecodificacion()),
@@ -247,7 +228,8 @@ public class SimuladorService {
                 base.tamMemoriaDatos(),
                 base.tamMemoriaUnificada(),
                 o(s.lineasCache(), base.lineasCache()),
-                base.latenciaCache());
+                base.latenciaCache(),
+                alg);
     }
 
     private String programaDe(SolicitudSimulacionDTO s, TipoArquitectura tipo) {
@@ -257,7 +239,6 @@ public class SimuladorService {
         return ProgramaPorDefecto.para(tipo, o(s.valorA(), VALOR_A_POR_DEFECTO), o(s.valorB(), VALOR_B_POR_DEFECTO));
     }
 
-    /** Elimina sesiones inactivas y, si aún hay demasiadas, las más antiguas. */
     private void limpiarSesiones() {
         long limite = System.currentTimeMillis() - inactividadMaximaMs;
         sesiones.entrySet().removeIf(e -> e.getValue().ultimoUsoMs < limite);
